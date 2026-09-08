@@ -1,0 +1,12 @@
+collection_name: travel_guide
+slot_collection_name: slot_examples
+persist_directory: chroma_db
+k: 1
+slot_k: 1
+data_path: data
+md5_hex_store: md5.text
+allow_knowledge_file_type: ["txt", "pdf", "csv"]
+
+chunk_size: 200
+chunk_overlap: 20
+separators: ["\n\n", "\n", ".", "?", "!", ";", ":", ",", "。", " "]

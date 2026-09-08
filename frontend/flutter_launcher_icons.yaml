@@ -1,0 +1,8 @@
+# flutter_launcher_icons 配置: 改完图标跑 `dart run flutter_launcher_icons`
+flutter_launcher_icons:
+  image_path: "assets/icon/tracord_icon_1024.png"      # 传统图标(白底)
+  android: true
+  ios: false
+  adaptive_icon_background: "#ffffff"                  # Android 自适应图标背景
+  adaptive_icon_foreground: "assets/icon/tracord_foreground_1024.png"  # 前景(透明底, 图形已留好安全边距)
+  min_sdk_android: 21

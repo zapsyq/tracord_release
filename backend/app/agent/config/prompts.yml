@@ -1,0 +1,5 @@
+intent_prompt_path: prompts/intent_prompt.txt
+chat_prompt_path: prompts/chat_prompt.txt
+travel_prompt_path: prompts/travel_prompt.txt
+operation_prompt_path: prompts/operation_prompt.txt
+rag_summarize_prompt_path: prompts/rag_summarize.txt

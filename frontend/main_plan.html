@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+
+<html lang="zh-CN"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tracord - Planning</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed-dim": "#c6c6c7",
+                        "on-secondary": "#ffffff",
+                        "surface": "#fbf9f9",
+                        "on-tertiary-fixed-variant": "#454747",
+                        "secondary-fixed-dim": "#c6c6c7",
+                        "on-surface": "#1b1c1c",
+                        "primary": "#000000",
+                        "inverse-primary": "#c6c6c6",
+                        "tertiary-container": "#1a1c1c",
+                        "on-primary-fixed-variant": "#474747",
+                        "outline-variant": "#cfc4c5",
+                        "on-error": "#ffffff",
+                        "inverse-surface": "#303031",
+                        "error-container": "#ffdad6",
+                        "on-background": "#1b1c1c",
+                        "on-primary": "#ffffff",
+                        "on-secondary-fixed-variant": "#454747",
+                        "on-primary-fixed": "#1b1b1b",
+                        "tertiary": "#000000",
+                        "on-surface-variant": "#4c4546",
+                        "secondary-container": "#dfe0e0",
+                        "surface-dim": "#dbdad9",
+                        "background": "#fbf9f9",
+                        "surface-variant": "#e3e2e2",
+                        "primary-container": "#1b1b1b",
+                        "inverse-on-surface": "#f2f0f0",
+                        "on-tertiary-fixed": "#1a1c1c",
+                        "error": "#ba1a1a",
+                        "on-secondary-fixed": "#1a1c1c",
+                        "secondary": "#5d5f5f",
+                        "on-primary-container": "#848484",
+                        "surface-container-low": "#f5f3f3",
+                        "surface-container": "#efeded",
+                        "surface-container-high": "#e9e8e7",
+                        "on-secondary-container": "#616363",
+                        "on-tertiary-container": "#838484",
+                        "on-tertiary": "#ffffff",
+                        "primary-fixed": "#e2e2e2",
+                        "tertiary-fixed": "#e2e2e2",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-highest": "#e3e2e2",
+                        "surface-tint": "#5e5e5e",
+                        "outline": "#7e7576",
+                        "on-error-container": "#93000a",
+                        "surface-bright": "#fbf9f9",
+                        "secondary-fixed": "#e2e2e2",
+                        "primary-fixed-dim": "#c6c6c6"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "element-gap": "12px",
+                        "container-padding": "20px",
+                        "section-margin": "32px",
+                        "base": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "body-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "label-sm": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["22px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "26px", "fontWeight": "500" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "headline-lg": ["28px", { "lineHeight": "36px", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1;
+        }
+        /* Custom rough border utility to simulate sketch style */
+        .border-sketch {
+            border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background antialiased min-h-screen">
+<nav class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-container-padding h-16 bg-background text-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-transform active:translate-x-1 active:translate-y-1 active:shadow-none">
+<button class="flex items-center justify-center p-2 hover:bg-surface-variant rounded-full transition-colors">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</button>
+<span class="font-headline-md text-headline-md font-extrabold tracking-tight">迹录 · Tracord</span>
+<button class="flex items-center justify-center p-2 hover:bg-surface-variant rounded-full transition-colors">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+</button>
+</nav>
+<main class="pt-24 pb-32 px-container-padding flex flex-col gap-section-margin">
+<header class="flex justify-between items-end">
+<div>
+<h1 class="font-headline-lg text-headline-lg text-primary mb-1">未来计划</h1>
+<p class="font-body-md text-body-md text-secondary">2个即将开启的旅程</p>
+</div>
+<button class="w-12 h-12 bg-primary text-on-primary rounded-xl flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] border-2 border-primary transition-transform active:translate-x-1 active:translate-y-1 active:shadow-none">
+<span class="material-symbols-outlined">add</span>
+</button>
+</header>
+<section class="flex flex-col gap-8">
+<article class="bg-surface-bright border-[3px] border-primary rounded-xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-sketch relative overflow-hidden group transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary opacity-5 rounded-bl-full pointer-events-none"></div>
+<div class="flex justify-between items-start mb-6">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary flex items-center gap-2">
+                            京都秋日巡礼
+                            <span class="material-symbols-outlined text-xl">map</span>
+</h2>
+<p class="font-body-md text-body-md text-secondary mt-1 font-mono">2024.11.15 - 11.20</p>
+</div>
+<div class="px-3 py-1 border-2 border-primary rounded-full font-label-sm text-label-sm shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] bg-surface-container-lowest">
+                        筹备中
+                    </div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="col-span-2 bg-surface-container-low border-2 border-primary border-dashed rounded-lg p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+<h3 class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-3">Itinerary</h3>
+<ul class="flex flex-col gap-3 relative">
+<li class="flex items-center gap-3">
+<div class="w-3 h-3 bg-primary rounded-full border-2 border-white shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] z-10"></div>
+<span class="font-body-md text-body-md font-bold">抵达关西国际机场</span>
+</li>
+<li class="flex items-center gap-3">
+<div class="w-3 h-3 bg-surface-bright rounded-full border-2 border-primary z-10"></div>
+<span class="font-body-md text-body-md">岚山小火车 &amp; 竹林</span>
+</li>
+<li class="flex items-center gap-3">
+<div class="w-3 h-3 bg-surface-bright rounded-full border-2 border-primary z-10"></div>
+<span class="font-body-md text-body-md">伏见稻荷大社</span>
+</li>
+<div class="absolute left-[5px] top-3 bottom-3 w-0.5 bg-primary border-dashed z-0"></div>
+</ul>
+</div>
+<div class="bg-surface-container-lowest border-2 border-primary rounded-lg p-4 flex flex-col justify-between shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+<h3 class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Bills</h3>
+<div class="mt-2">
+<span class="font-label-sm text-label-sm align-top">¥</span>
+<span class="font-headline-lg text-headline-lg font-black tracking-tight">8,500</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border-2 border-primary rounded-lg p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+<h3 class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-2">Notes</h3>
+<p class="font-body-md text-body-md leading-snug line-clamp-3">记得提前一个月预订米其林二星菊乃井，租借和服的店铺也要尽早确认时间...</p>
+</div>
+</div>
+</article>
+<article class="bg-surface-bright border-[3px] border-primary rounded-xl p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-sketch relative overflow-hidden group transition-all hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h2 class="font-headline-md text-headline-md text-primary flex items-center gap-2">
+                            北海道跨年
+                            <span class="material-symbols-outlined text-xl">ac_unit</span>
+</h2>
+<p class="font-body-md text-body-md text-secondary mt-1 font-mono">2024.12.28 - 01.03</p>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="col-span-2 bg-surface-container-low border-2 border-primary border-dashed rounded-lg p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+<h3 class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-3">Itinerary</h3>
+<ul class="flex flex-col gap-3 relative">
+<li class="flex items-center gap-3">
+<div class="w-3 h-3 bg-surface-bright rounded-full border-2 border-primary z-10"></div>
+<span class="font-body-md text-body-md">札幌冰雪节开幕</span>
+</li>
+<li class="flex items-center gap-3">
+<div class="w-3 h-3 bg-surface-bright rounded-full border-2 border-primary z-10"></div>
+<span class="font-body-md text-body-md">小樽运河夜景</span>
+</li>
+<div class="absolute left-[5px] top-3 bottom-3 w-0.5 bg-primary border-dashed z-0"></div>
+</ul>
+</div>
+<div class="bg-surface-container-lowest border-2 border-primary rounded-lg p-4 flex flex-col justify-between shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+<h3 class="font-label-sm text-label-sm text-secondary uppercase tracking-wider">Bills</h3>
+<div class="mt-2">
+<span class="font-label-sm text-label-sm align-top">¥</span>
+<span class="font-headline-lg text-headline-lg font-black tracking-tight">15,000</span>
+</div>
+</div>
+<div class="bg-surface-container-lowest border-2 border-primary rounded-lg p-4 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+<h3 class="font-label-sm text-label-sm text-secondary uppercase tracking-wider mb-2">Notes</h3>
+<p class="font-body-md text-body-md leading-snug line-clamp-3">必须买防滑靴！带够暖宝宝。JR Pass 提前换票...</p>
+</div>
+</div>
+</article>
+</section>
+<button class="fixed bottom-28 right-6 w-16 h-16 bg-primary text-on-primary rounded-[28px] border-sketch flex items-center justify-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] border-2 border-primary z-40 transition-transform active:translate-x-1 active:translate-y-1 active:shadow-none">
+<span class="material-symbols-outlined text-3xl">pets</span>
+</button>
+</main>
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-container-padding pb-6 pt-2 bg-background shadow-[0px_-4px_0px_0px_rgba(0,0,0,1)] md:hidden">
+<button class="flex flex-col items-center justify-center text-secondary opacity-70 hover:bg-surface-container-high rounded-lg p-2 transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined mb-1">map</span>
+<span class="font-label-sm text-label-sm">地图</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary opacity-70 hover:bg-surface-container-high rounded-lg p-2 transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined mb-1">edit_note</span>
+<span class="font-label-sm text-label-sm">记录</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary text-on-primary rounded-xl px-5 py-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 active:scale-95 border-2 border-primary">
+<span class="material-symbols-outlined mb-1">event_note</span>
+<span class="font-label-sm text-label-sm">规划</span>
+</button>
+<button class="flex flex-col items-center justify-center text-secondary opacity-70 hover:bg-surface-container-high rounded-lg p-2 transition-all duration-200 active:scale-95">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-label-sm text-label-sm">我的</span>
+</button>
+</nav>
+</body></html>
