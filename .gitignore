@@ -9,6 +9,7 @@ __pycache__/
 # 日志与本地数据库(运行时API拉取的缓存数据, 不公开)
 backend/app/data/
 backend/docs/
+backend/.vscode
 *.log
 chroma_db/
 
