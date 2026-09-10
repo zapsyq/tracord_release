@@ -1,5 +1,9 @@
 <div align="center">
 
+[简体中文](README.md) · [English](README.en)
+
+---
+
 # 迹录 Tracord
 
 **旅行记录 + 行程规划 + 知识攻略三合一的移动端应用**

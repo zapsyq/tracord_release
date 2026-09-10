@@ -1,0 +1,351 @@
+<div align="center">
+
+[简体中文](README.md) · [English](README.en)
+
+---
+
+# Tracord 迹录
+
+**Travel Records + Trip Planning + Travel Guide Q&A.**
+
+Light up cities you have visited on the map, log expenses with a single sentence.
+Tell the AI assistant "Plan 4 days in Hangzhou from Shanghai with a budget of ¥3000",
+and it generates an **executable** timeline itinerary — which train to take and when,
+where to eat, where to stay, itemized costs, and over-budget warnings.
+
+</div>
+
+---
+
+## Table of Contents
+
+- [Features](#features)
+- [Architecture](#architecture)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Requirements](#requirements)
+- [Quick Start](#quick-start)
+  - [1. Configure Backend](#1-configure-backend)
+  - [2. Initialize Database](#2-initialize-database)
+  - [3. Start the Two Local Model Services](#3-start-the-two-local-model-services)
+  - [4. Build the Vector Database](#4-build-the-vector-database)
+  - [5. Start the Backend](#5-start-the-backend)
+  - [6. Start the Frontend](#6-start-the-frontend)
+- [Debug on a Real Device (USB)](#debug-on-a-real-device-usb)
+- [Usage Guide](#usage-guide)
+- [Fine-tune Your Own Model](#fine-tune-your-own-model)
+- [Configuration Reference](#configuration-reference)
+- [FAQ](#faq)
+- [Data Notice](#data-notice)
+- [License](#license)
+
+---
+
+## Features
+
+### 🗺️ Map and City Footprints
+- Nationwide city-boundary GeoJSON (parsed in an isolate) with ray-casting hit tests.
+- Long-press a city to light it up / un-light it, plan a trip, or open trip records; lit cities render as highlighted polygons.
+- Lighting up auto-creates a travel archive; bills, notes and itineraries are filed by city.
+
+### 🧭 AI Trip Planning
+- Slot filling with the small LLM + RAG few-shot examples: extracts departure city, destination, days and budget from one sentence.
+- A deterministic DFS planning engine (time-driven state machine + backtracking pruning + dynamic budget splitting) plans against real attraction / train / flight data — no more hallucinated train numbers or wrong totals.
+- Outputs day-grouped timeline itinerary cards: transport / meals / hotels / attractions + itemized cost + over-budget alert.
+
+### 💬 Smart Expense Logging
+- Natural-language logging: say "Nanning accommodation 200" and it is categorized automatically.
+- Query bill details and spending stats by city.
+
+### 📚 Travel Guide Q&A
+- Vector-search over a local travel-guide knowledge base; supports `.txt` / `.pdf` / `.csv` ingestion with incremental updates.
+
+### 🛡️ Stable Dialogue (Harness Architecture)
+- Deterministic Python code validates model outputs: passes valid answers straight through, removes failed sub-agents and re-routes.
+- A stable conversational experience even on a 0.8B parameter model.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Flutter App] -->|HTTP / SSE| B[FastAPI Backend]
+    B --> C{Supervisor Router}
+    C -->|Trip| D[travel sub-agent]
+    C -->|Operation| E[operation sub-agent]
+    C -->|Chat| F[chat sub-agent]
+    D -->|Planning| D1[Slot filling LLM+RAG]
+    D1 --> D2[DFS planning engine]
+    D -->|Guide Q| D3[RAG guide Q&A]
+    E --> E1[Billing / Cities / Bills]
+    D2 & D3 & E1 --> G[harness validation]
+    G -->|OK| H[to user]
+    G -->|Fail| C
+```
+
+One planning request end-to-end:
+
+```
+User: "Plan 4 days in Hangzhou from Shanghai, budget 3000"
+  → supervisor picks the travel sub-agent
+  → slot filling: {from:Shanghai, to:Hangzhou, days:4, budget:3000}
+  → DFS engine: (outbound × return × hotel) combos + fill day by day
+  → returns timeline itinerary card
+```
+
+## Tech Stack
+
+| Layer   | Technology |
+|---------|------------|
+| Frontend | Flutter 3.x + Provider + dio + flutter_map (TiandiMap) + GeoJSON |
+| Backend | FastAPI + SQLAlchemy 2.0(async) + MySQL 8.x + Redis + Alembic |
+| Agents | LangChain create_agent + LangGraph, multi-agent supervisor |
+| Planner | Custom DFS + backtracking pruning + dynamic budget splitting |
+| RAG | ChromaDB + m3e embeddings |
+| Model | Qwen3.5-0.8B LoRA fine-tune (LLaMA-Factory) + llama.cpp local inference |
+
+## Project Structure
+
+```
+tracord/
+├── backend/
+│   ├── main.py                    # entrypoint (uvicorn main:app)
+│   ├── alembic/
+│   ├── app/
+│   │   ├── routers/               # user / cities / trips / bills / agent ...
+│   │   ├── services/
+│   │   ├── crud/
+│   │   ├── models/
+│   │   ├── config/                # DB / mail / JWT (reads .env)
+│   │   ├── core/
+│   │   ├── data/                  # runtime data cache (gitignored)
+│   │   └── agent/                 # multi-agent system
+│   │       ├── tracord_agent.py   # supervisor + harness loop
+│   │       ├── config/
+│   │       ├── prompts/
+│   │       ├── data/              # slot examples + guide docs
+│   │       ├── model/             # model factory (llama.cpp)
+│   │       ├── chat/
+│   │       └── travel/            # planner engine / RAG / slot filler / data sources
+│   ├── operation/
+│   ├── train_data/
+│   ├── scripts/
+│   └── docs/
+└── frontend/
+    └── lib/features/              # map / agent / trips / plans / records / auth ...
+```
+
+## Requirements
+
+| Dependency | Version | Purpose |
+|------------|---------|---------|
+| Python | 3.12+ | Backend runtime |
+| [uv](https://docs.astral.sh/uv/) | latest | Python dependency manager |
+| MySQL | 8.x | Database |
+| Redis | 6+ | CAPTCHA cooldown / cache |
+| Flutter | 3.x | Mobile app |
+| Android SDK | with adb | Real-device debugging |
+| [llama.cpp](https://github.com/ggml-org/llama.cpp) | latest | Local model inference |
+| Fine-tuned dialogue model | Qwen3.5-0.8B GGUF | port 8080 |
+| [m3e-small](https://huggingface.co/moka-ai/m3e-small) GGUF | - | embedding, port 8081 |
+
+## Quick Start
+
+> Commands run from the project root unless noted; backend commands first `cd backend`.
+
+### 1. Configure Backend
+
+```bash
+cd backend
+uv sync
+cp .env.example .env        # then fill in your own keys
+```
+
+See [Configuration Reference](#configuration-reference) for every variable.
+
+### 2. Initialize Database
+
+Create a `tracord` database in MySQL (utf8mb4), then:
+
+```bash
+alembic upgrade head
+```
+
+### 3. Start the Two Local Model Services
+
+Two model servers are required — both must be running:
+
+```bash
+# Terminal 1: dialogue model (port 8080) — slot filling, routing, chat
+llama-server -m qwen3.5-0.8b.gguf --port 8080
+
+# Terminal 2: embedding model (port 8081) — guides & slot examples, needs --embedding
+llama-server -m m3e-small.gguf --port 8081 --embedding
+```
+
+Mappings live in `backend/app/agent/config/model.yml`.
+
+### 4. Build the Vector Database
+
+Required once before first use, otherwise guide Q&A and slot filling are empty:
+
+```bash
+# ① Ingest slot-filling few-shot examples
+python scripts/_load_slots.py
+
+# ② Ingest guide docs (.txt/.pdf/.csv under backend/app/agent/data/)
+python -c "from app.agent.travel.services.vector_store import VectorStoreService; VectorStoreService().load_document()"
+```
+
+- Stored under `backend/chroma_db/`; incremental via MD5, safe to re-run.
+- Add more guides by dropping `.txt` (per city) / `.pdf` / `.csv` files into
+  `backend/app/agent/data/` and re-running ②.
+
+### 5. Start the Backend
+
+```bash
+uvicorn main:app --host 127.0.0.1 --port 8000
+```
+
+### 6. Start the Frontend
+
+```bash
+cd frontend
+flutter pub get
+flutter run
+```
+
+## Debug on a Real Device (USB)
+
+1. Enable USB debugging, connect via USB cable (authorize on first connect).
+2. Forward port 8000 (adb lives under Android SDK's `platform-tools`):
+
+```bash
+D:\Android\SDK\platform-tools\adb.exe reverse tcp:8000 tcp:8000
+```
+
+3. Keep `lib/core/network/api_config.dart` baseUrl as `http://127.0.0.1:8000`.
+
+> ⚠️ Re-run the adb reverse after every reconnect / adb restart.
+>
+> Wi-Fi alternative: start backend with `--host 0.0.0.0`, set baseUrl to
+> `http://your-PC-local-IP:8000`, phone and PC on the same Wi-Fi.
+
+## Simulation Device (Android Emulator)
+
+Use `http://10.0.2.2:8000` for baseUrl (10.0.2.2 maps to the host machine).
+
+## Usage Guide
+
+### Plan a Trip
+Say "Plan 4 days in Hangzhou from Shanghai, budget 3000" → a 4-day itinerary card
+with trains, meals, hotels, activities, itemized costs and over-budget alerts.
+
+### Log an Expense
+Traveling, say "Nanning accommodation 200" → auto-categorized; ask anytime
+"how much did I spend in Nanning" to view bills.
+
+### Light Up a City
+Long-press a city you visited → Light up → travel archive created automatically;
+bills / notes / itineraries are filed by city, and the city highlights on the map.
+
+## Fine-tune Your Own Model
+
+The prompts and interaction design can be reproduced with any base model:
+
+1. Training data: `backend/train_data/tool_calling_train.jsonl`
+   (use `backend/scripts/gen_finetune_data.py` to append samples; read the script header first)
+2. LoRA fine-tune Qwen3.5-0.8B with [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory)
+   (sharegpt / tool-calling format)
+3. Merge the LoRA weights, export to GGUF, deploy with llama.cpp (see Step 3)
+4. Run `backend/scripts/batch_test_budget.py` for regression.
+
+## Configuration Reference
+
+All `backend/.env` variables:
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| AMAP_KEY | Amap Open key (POI data) | - |
+| ROLLINGGO_KEY | RollingGo key (transport data) | - |
+| TIANDITU_KEYS | TiandiMap key(s), comma-separated for polling | key1,key2 |
+| TENCENT_KEY | Tencent location key (city geocoding) | - |
+| MAIL_USERNAME | Email sending the CAPTCHA codes | xxx@qq.com |
+| MAIL_PASSWORD | QQ SMTP auth code (NOT the login password) | 16-char code |
+| MAIL_FROM | Sender address (same as MAIL_USERNAME) | xxx@qq.com |
+| MAIL_PORT | SMTP port (QQ SSL always 465) | 465 |
+| MAIL_SERVER | SMTP server | smtp.qq.com |
+| MAIL_SSL / MAIL_STARTTLS | Encryption | True / False |
+| JWT_SECRET_KEY | Token signing secret, ≥32 bytes random | `python -c "import secrets; print(secrets.token_urlsafe(48))"` |
+| DB_USER / DB_PASSWORD | MySQL credentials | root / xxx |
+| DB_HOST / DB_PORT | MySQL host / port | localhost / 3306 |
+| DB_NAME | Database name | tracord |
+
+Model / vector-DB configs are yml files under `backend/app/agent/config/`
+(model.yml / chroma.yml / prompts.yml); usually no changes needed.
+
+## FAQ
+
+<details>
+<summary><b>Login returns 500 / CAPTCHA not received?</b></summary>
+
+Check MySQL is running, `tracord` exists, `alembic upgrade head` ran, and the SMTP settings in
+`.env` are correct (use the SMTP **auth code**, not the QQ login password).
+</details>
+
+<details>
+<summary><b>Guide Q&A / slot filling has no response?</b></summary>
+
+The port-8081 embedding service may be down, or Step 4 wasn't run.
+Confirm `backend/chroma_db/` exists and both model services are up.
+</details>
+
+<details>
+<summary><b>Model connection errors / 502s?</b></summary>
+
+Confirm both llama.cpp servers (8080 / 8081) are running; on Windows ten/httpx 502s
+are worked around by the built-in `RequestsTransport` (see `backend/app/agent/model/factory.py`).
+</details>
+
+<details>
+<summary><b>Real device can't reach the backend / keeps timing out?</b></summary>
+
+USB: re-run adb reverse after reconnect and confirm the device is authorized.
+Wi-Fi: start backend with `--host 0.0.0.0`, same Wi-Fi, firewall open on 8000.
+</details>
+
+<details>
+<summary><b>Plan says "cannot plan" or over budget?</b></summary>
+
+A too-low budget triggers pruning (engine allows 20% tolerance). Raise the budget, or check the
+logs to confirm POI / restaurant / transport data was fetched with valid keys.
+</details>
+
+<details>
+<summary><b>Map tiles not showing?</b></summary>
+
+TiandiMap key (TIANDITU_KEYS) missing or out of quota; multiple keys in `.env` are polled.
+</details>
+
+## Data Notice
+
+This repository **does not include any business data**. On first run the app fetches attraction,
+restaurant and transport data over the API keys in your `.env` (Amap / 12306 / RollingGo) and
+caches it locally under `backend/app/data/` (excluded from git).
+
+Data comes from third-party services; comply with their terms of service and do not redistribute it.
+
+## License
+
+Licensed under the [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0):
+**for personal learning, research and noncommercial purposes only — any commercial use is prohibited.**
+See [LICENSE](LICENSE).
+
+For commercial licensing inquiries, contact the author for written permission.
+
+## Acknowledgements
+
+- [llama.cpp](https://github.com/ggml-org/llama.cpp) — local large-model inference
+- [LLaMA-Factory](https://github.com/hiyouga/LLaMA-Factory) — model fine-tuning
+- [LangChain](https://github.com/langchain-ai/langchain) / [LangGraph](https://github.com/langchain-ai/langgraph) — agent framework
+- [Flutter](https://flutter.dev) / [flutter_map](https://github.com/jaffaketchup/flutter_map) — mobile UI & maps
+- [Chroma](https://github.com/chroma-core/chroma) — vector database
