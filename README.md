@@ -2,6 +2,11 @@
 
 [简体中文](README.md) · [English](README.en)
 
+<br/>
+<img src="competition_docs/logo/tracord_logo.svg" width="180" alt="迹录 Tracord Logo"/>
+
+</div>
+
 ---
 
 # 迹录 Tracord
@@ -10,12 +15,6 @@
 
 在地图上点亮去过的城市、一句话记账；AI 助手听懂一句"上海去杭州玩4天，预算3000"，
 直接生成**可执行**的时间轴行程单——几点坐什么车、在哪吃饭、住哪、每项花多少钱。
-
-<!-- TODO: 发布前在此贴项目 Logo / 截图
-<img src="competition_docs/logo/tracord_logo.svg" width="120"/>
--->
-
-</div>
 
 ---
 

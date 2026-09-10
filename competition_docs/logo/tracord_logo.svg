@@ -1,0 +1,8 @@
+<svg viewBox="0 0 240 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- 迹录 Tracord · 一笔TC: 横杠是T的肩、也是C的上端 -->
+  <g stroke="#000" stroke-width="20" stroke-linecap="round" fill="none">
+    <path d="M30,58 L172,58"/>
+    <path d="M86,58 L86,182"/>
+    <path d="M172,58 A48,48 0 1 0 184,148"/>
+  </g>
+</svg>
