@@ -5,6 +5,8 @@
 <br/>
 <img src="competition_docs/logo/tracord_logo.svg" width="180" alt="迹录 Tracord Logo"/>
 
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+
 </div>
 
 ---
@@ -342,11 +344,9 @@ USB 方式：确认 adb reverse 已执行且设备已授权（`adb devices` 能�
 
 ## License
 
-本项目采用 [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0) 许可：**仅允许个人学习、研究等非商业用途，禁止一切商业使用**，详见 [LICENSE](LICENSE)。
+本项目采用 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0)，详见 [LICENSE](LICENSE)。
 
-如需商业授权，请联系作者取得书面许可。
-
-分发时请保留本协议、原作者署名与仓库地址；使用第三方 API 拉取的数据请遵守数据源服务条款，不得再分发。
+分发时请保留版权声明与许可声明；使用第三方 API 拉取的数据请遵守数据源服务条款。
 
 ## 致谢
 

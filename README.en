@@ -5,6 +5,8 @@
 <br/>
 <img src="competition_docs/logo/tracord_logo.svg" width="180" alt="Tracord Logo"/>
 
+[![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://www.apache.org/licenses/LICENSE-2.0)
+
 </div>
 
 ---
@@ -341,11 +343,9 @@ Data comes from third-party services; comply with their terms of service and do 
 
 ## License
 
-Licensed under the [PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0):
-**for personal learning, research and noncommercial purposes only — any commercial use is prohibited.**
-See [LICENSE](LICENSE).
+Licensed under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), see [LICENSE](LICENSE).
 
-For commercial licensing inquiries, contact the author for written permission.
+When redistributing, retain the copyright and license notices. Data obtained via third-party APIs must comply with their terms of service.
 
 ## Acknowledgements
 
