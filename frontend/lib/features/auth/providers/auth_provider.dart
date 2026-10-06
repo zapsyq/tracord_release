@@ -96,6 +96,7 @@ class AuthProvider extends ChangeNotifier {
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
       );
+      await tokenStorage.saveUserId(result.user.id);
       currentUser = result.user;
       isLoggedIn = true;
       isLoading = false;
@@ -126,6 +127,7 @@ class AuthProvider extends ChangeNotifier {
         accessToken: result.accessToken,
         refreshToken: result.refreshToken,
       );
+      await tokenStorage.saveUserId(result.user.id);
       currentUser = result.user;
       isLoggedIn = true;
       isLoading = false;

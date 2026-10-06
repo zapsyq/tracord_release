@@ -55,4 +55,9 @@ class PlanService {
   Future<void> deleteBudget(int budgetId) async {
     await _dio.delete('/budget/$budgetId');
   }
+
+  /// 删除计划
+  Future<void> deletePlan(int planId) async {
+    await _dio.delete('/plans/$planId');
+  }
 }

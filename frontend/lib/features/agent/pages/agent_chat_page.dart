@@ -14,7 +14,11 @@ class AgentChatPage extends StatefulWidget {
 }
 
 class _AgentChatPageState extends State<AgentChatPage> {
-  static const _storageKey = 'agent_chat_messages';
+  //聊天记录按账号隔离: agent_chat_messages_<用户ID>, 换账号看不到别人的记录
+  static const _storagePrefix = 'agent_chat_messages_';
+  int _userId = 0;
+
+  String get _storageKey => '$_storagePrefix$_userId';
 
   final _messages = <_ChatMsg>[];
   final _scrollCtrl = ScrollController();
@@ -29,6 +33,9 @@ class _AgentChatPageState extends State<AgentChatPage> {
 
   Future<void> _loadMessages() async {
     final prefs = await SharedPreferences.getInstance();
+    _userId = prefs.getInt('user_id') ?? 0;
+    // 清理旧版固定键名的残留(不区分账号, 属于脏数据)
+    await prefs.remove('agent_chat_messages');
     final raw = prefs.getString(_storageKey);
     if (raw != null) {
       try {

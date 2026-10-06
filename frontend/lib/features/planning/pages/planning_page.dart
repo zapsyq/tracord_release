@@ -25,11 +25,15 @@ class _PlanCard {
   final String cityName;
   final double budget;
   final String note;
+  final int? planId;          // 该城市计划文本的记录ID(没有计划则为null)
+  final List<int> budgetIds;  // 该城市全部预算的记录ID
   const _PlanCard({
     required this.adcode,
     required this.cityName,
     required this.budget,
     required this.note,
+    this.planId,
+    this.budgetIds = const [],
   });
 }
 
@@ -69,19 +73,23 @@ class _PlanningPageState extends State<PlanningPage> {
         nameMap[toAdcode(c.code)] = stripCitySuffix(c.name);
       }
 
-      // 计划文本（adcode -> content），并记录最新更新时间用于排序
+      // 计划文本（adcode -> content）与记录ID，并记录最新更新时间用于排序
       final notes = <String, String>{};
+      final planIds = <String, int>{};
       final latestTime = <String, String>{};
       for (final p in plans) {
         final adcode = p['adcode'] as String? ?? '';
         if (adcode.isEmpty) continue;
         notes[adcode] = p['content'] as String? ?? '';
+        final id = _parseId(p['id']);
+        if (id != null) planIds[adcode] = id;
         final t = p['update_time'] as String? ?? '';
         if (t.compareTo(latestTime[adcode] ?? '') > 0) latestTime[adcode] = t;
       }
 
-      // 预算汇总（adcode -> 总额），并记录最新更新时间
+      // 预算汇总（adcode -> 总额）与记录ID，并记录最新更新时间
       final budgetByAdcode = <String, double>{};
+      final budgetIdsByAdcode = <String, List<int>>{};
       for (final b in budgets) {
         final adcode = b['adcode'] as String? ?? '';
         if (adcode.isEmpty) continue;
@@ -93,6 +101,8 @@ class _PlanningPageState extends State<PlanningPage> {
           v = double.tryParse(amt) ?? 0;
         }
         budgetByAdcode[adcode] = (budgetByAdcode[adcode] ?? 0) + v;
+        final id = _parseId(b['id']);
+        if (id != null) (budgetIdsByAdcode[adcode] ??= []).add(id);
         final t = b['update_time'] as String? ?? '';
         if (t.compareTo(latestTime[adcode] ?? '') > 0) latestTime[adcode] = t;
       }
@@ -104,6 +114,8 @@ class _PlanningPageState extends State<PlanningPage> {
             cityName: nameMap[adcode] ?? adcode,
             budget: budgetByAdcode[adcode] ?? 0,
             note: notes[adcode] ?? '',
+            planId: planIds[adcode],
+            budgetIds: budgetIdsByAdcode[adcode] ?? const [],
           )).toList()
         ..sort((a, b) => (latestTime[b.adcode] ?? '')
             .compareTo(latestTime[a.adcode] ?? ''));
@@ -128,6 +140,64 @@ class _PlanningPageState extends State<PlanningPage> {
       }),
     ));
     if (mounted) _load();
+  }
+
+  //把接口返回的ID宽松地转成int, 转不了返回null
+  int? _parseId(dynamic v) {
+    if (v is int) return v;
+    if (v is String) return int.tryParse(v);
+    return null;
+  }
+
+  //删除一张计划卡片: 计划文本 + 该城市全部预算, 删前先确认
+  Future<void> _confirmDelete(_PlanCard card) async {
+    final parts = <String>[];
+    if (card.planId != null) parts.add('计划');
+    if (card.budgetIds.isNotEmpty) parts.add('${card.budgetIds.length} 条预算');
+    if (parts.isEmpty) return;
+
+    final sure = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: AppColors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: const BorderSide(color: AppColors.black, width: 2),
+        ),
+        title: const Text('删除计划',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.black)),
+        content: Text('将删除${card.cityName}的${parts.join('与')}，删除后无法恢复。',
+            style: const TextStyle(fontSize: 14, color: AppColors.greyText)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('取消', style: TextStyle(color: AppColors.greyText)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('删除',
+                style: TextStyle(color: AppColors.black, fontWeight: FontWeight.w700)),
+          ),
+        ],
+      ),
+    );
+    if (sure != true) return;
+
+    try {
+      if (card.planId != null) {
+        await _service!.deletePlan(card.planId!);
+      }
+      for (final id in card.budgetIds) {
+        await _service!.deleteBudget(id);
+      }
+      await _load();
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('删除失败'), backgroundColor: Colors.black, behavior: SnackBarBehavior.floating),
+        );
+      }
+    }
   }
 
   @override
@@ -180,6 +250,7 @@ class _PlanningPageState extends State<PlanningPage> {
             ));
             _load();
           },
+          onDelete: () => _confirmDelete(c),
         );
       },
     );
@@ -217,7 +288,8 @@ class _Header extends StatelessWidget {
 class _PlanCardView extends StatelessWidget {
   final _PlanCard card;
   final VoidCallback onTap;
-  const _PlanCardView({required this.card, required this.onTap});
+  final VoidCallback onDelete;
+  const _PlanCardView({required this.card, required this.onTap, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -237,13 +309,28 @@ class _PlanCardView extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              card.cityName,
-              style: const TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w700,
-                color: AppColors.black,
-              ),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    card.cityName,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.black,
+                    ),
+                  ),
+                ),
+                // 删除这张计划(计划文本+预算一起删)
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: onDelete,
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(Icons.delete_outline, size: 22, color: AppColors.greyMedium),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             IntrinsicHeight(
