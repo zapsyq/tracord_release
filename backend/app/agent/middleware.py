@@ -77,6 +77,8 @@ def log_before_model(
     runtime: Runtime,
 ):
     logger.info(f"[log_before_model]即将调用模型, 带有{len(state["messages"])}条信息")
-    logger.debug(f"[log_before_model] {type(state["messages"][-1]).__name__}: {state["messages"][-1].content.strip()}")
+    # 消息内容可能是列表(如空列表被库误当成内容块), 统一转字符串再打印, 防止调试日志把流程弄崩
+    last = state["messages"][-1]
+    logger.debug(f"[log_before_model] {type(last).__name__}: {str(last.content)[:300]}")
 
     return None

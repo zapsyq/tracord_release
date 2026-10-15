@@ -44,13 +44,14 @@ def city_tools(service: CitiesService, user_id: int):
             return "点亮城市失败"
 
     @tool(description="当用户想要查看自己曾经去过的城市时使用。")
-    async def get_lighted_cities() -> str | list[str]:
+    async def get_lighted_cities() -> str:
         try:
             logger.info(f"用户{user_id}请求查看自己曾经去过的城市")
             result = await service.get_lighted_cities(user_id=user_id)
             logger.info(f"用户{user_id}请求查看自己曾经去过的城市成功")
             city_names = [ADCODE_CITY_MAP[adcode] for adcode in result if adcode in ADCODE_CITY_MAP]
-            return city_names
+            # 必须返回字符串: 如果未点亮城市时会返回空列表，会被框架误判报错
+            return "、".join(city_names) if city_names else "还没有点亮过任何城市"
         except Exception as e:
             logger.error(f"用户{user_id}请求查看自己曾经去过的城市失败: {e}", exc_info=True)
             return "查看自己曾经去过的城市失败"

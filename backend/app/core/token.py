@@ -4,7 +4,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from datetime import datetime
 from enum import Enum
 from app.config import token_config
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
+from starlette.status import HTTP_401_UNAUTHORIZED
 
 
 from threading import Lock
@@ -27,7 +27,8 @@ class TokenTypeEnum(Enum):
 
 #单例模式，整个程序只会启动一份
 class AuthHandler(metaclass=SingletonMeta):
-    security = HTTPBearer()
+    # auto_error=False: 缺token时不自动抛403, 改由依赖函数统一抛401(前端按401触发无感刷新)
+    security = HTTPBearer(auto_error=False)
 
     secret = token_config.JWT_SECRET_KEY
 
@@ -67,12 +68,12 @@ class AuthHandler(metaclass=SingletonMeta):
         try:
             payload = jwt.decode(token, self.secret, algorithms=['HS256'])
             if payload['type'] != int(TokenTypeEnum.ACCESS_TOKEN.value):
-                raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Token类型错误")
+                raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Token类型错误")
             return int(payload['sub'])
         except jwt.ExpiredSignatureError:
-            raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Token已过期")
+            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Token已过期")
         except jwt.InvalidTokenError:
-            raise HTTPException(status_code=HTTP_403_FORBIDDEN, detail="Token不可用")
+            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Token不可用")
         
     def decode_refresh_token(self, token):
         try:
@@ -85,9 +86,13 @@ class AuthHandler(metaclass=SingletonMeta):
         except jwt.InvalidTokenError:
             raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="Token不可用")
         
-    def auth_access_denpendency(self, auth: HTTPAuthorizationCredentials = Security(security)):
+    def auth_access_denpendency(self, auth: HTTPAuthorizationCredentials | None = Security(security)):
+        if auth is None:
+            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="未携带Token")
         return self.decode_access_token(auth.credentials)
-    
-    def auth_refresh_denpendency(self, auth: HTTPAuthorizationCredentials = Security(security)):
+
+    def auth_refresh_denpendency(self, auth: HTTPAuthorizationCredentials | None = Security(security)):
+        if auth is None:
+            raise HTTPException(status_code=HTTP_401_UNAUTHORIZED, detail="未携带Token")
         return self.decode_refresh_token(auth.credentials)
     

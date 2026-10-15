@@ -56,6 +56,9 @@ def build_supervisor_tools(travel_agent, operation_agent, chat_agent, exclude=No
             )
             msgs = result.get("messages", [])
             text = msgs[-1].content if msgs else ""
+            # 工具返回非字符串(如列表)时 content 是内容块, 统一转文本, 防止验收崩溃
+            if text is not None and not isinstance(text, str):
+                text = str(text)
         except Exception as e:
             logger.error(f"[_run_subagent] 子agent执行异常: {e}")
             return False, f"执行出错: {e}"

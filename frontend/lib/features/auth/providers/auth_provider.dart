@@ -25,6 +25,11 @@ class AuthProvider extends ChangeNotifier {
   Future<void> tryAutoLogin() async {
     final token = await tokenStorage.getAccessToken();
     if (token != null) {
+      // 恢复本地缓存的用户资料, 否则冷启动后"我的"页面会掉成"用户"
+      final id = await tokenStorage.getUserId() ?? 0;
+      final username = await tokenStorage.getUsername();
+      final email = await tokenStorage.getEmail();
+      currentUser = User(id: id, email: email ?? '', username: username ?? '用户');
       isLoggedIn = true;
       notifyListeners();
     }
@@ -97,6 +102,7 @@ class AuthProvider extends ChangeNotifier {
         refreshToken: result.refreshToken,
       );
       await tokenStorage.saveUserId(result.user.id);
+      await tokenStorage.saveUserInfo(username: result.user.username, email: result.user.email);
       currentUser = result.user;
       isLoggedIn = true;
       isLoading = false;
@@ -128,6 +134,7 @@ class AuthProvider extends ChangeNotifier {
         refreshToken: result.refreshToken,
       );
       await tokenStorage.saveUserId(result.user.id);
+      await tokenStorage.saveUserInfo(username: result.user.username, email: result.user.email);
       currentUser = result.user;
       isLoggedIn = true;
       isLoading = false;

@@ -14,6 +14,9 @@ class AgentService {
       data: {'query': query},
       options: Options(
         responseType: ResponseType.stream,
+        // 服务器端模型要读提示词+路由+生成, 首字可能等几十秒到一两分钟;
+        // 全局默认 10 秒接收超时撑不住, 这里单独放宽到 5 分钟
+        receiveTimeout: const Duration(minutes: 5),
         headers: {'Accept': 'text/event-stream'},
       ),
     );
